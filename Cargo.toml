@@ -2,6 +2,8 @@
 name = "mdbook-combiner"
 version = "0.1.0"
 edition = "2021"
+licence = "MIT"
+description = "a utility to combine mdbook summaries from multiple source into one mdbook"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
