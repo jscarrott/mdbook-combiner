@@ -8,4 +8,6 @@ description = "a utility to combine mdbook summaries from multiple source into o
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = { version = "4.2.4", features = ["derive"] }
 mdbook = "0.4.28"
+walkdir = "2.3.3"
