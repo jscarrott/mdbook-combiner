@@ -4,7 +4,7 @@ use std::{
 };
 
 use clap::Parser;
-use mdbook::book::Summary;
+use mdbook::book::{Summary, SummaryItem};
 use walkdir::WalkDir;
 
 #[derive(Parser, Debug)]
@@ -47,9 +47,9 @@ fn main() {
             acc.suffix_chapters.append(&mut x.suffix_chapters);
             acc
         });
-
+    let final_summary = output_summary(final_summary);
     println!("{final_summary:#?}");
-    std::fs::write("Summary.md", final_summary.display());
+    std::fs::write("Summary.md", final_summary);
     // println!("{length}");
     // let absolute_path = &summaries[0].1.canonicalize().unwrap();
     // rebase_summary(&absolute_path, sum);
@@ -115,4 +115,35 @@ fn rebase(x: mdbook::book::SummaryItem, new_base: &Path) -> mdbook::book::Summar
             mdbook::book::SummaryItem::PartTitle(ptitle)
         }
     }
+}
+
+fn output_summary_item(x: &SummaryItem, depth: u16) -> String {
+    let mut indent = String::new();
+    for _ in 0..depth {
+        indent += "\t";
+    }
+    match x {
+        SummaryItem::Link(link) => {
+            let loc = if let Some(path) = &link.location {
+                path.display().to_string()
+            } else {
+                String::new()
+            };
+            let mut s = format!("{}[{}]({})\n", indent, link.name, loc);
+            link.nested_items.iter().fold(s, |mut acc, x| {
+                acc += &output_summary_item(x, depth + 1);
+                acc
+            })
+        }
+        SummaryItem::Separator => format!("{}---\n", indent),
+        SummaryItem::PartTitle(ptitle) => format!("{}# {ptitle}\n", indent),
+    }
+}
+
+fn output_summary(x: Summary) -> String {
+    let mut output = String::new();
+    for x in x.numbered_chapters {
+        output += &output_summary_item(&x, 0);
+    }
+    output
 }
