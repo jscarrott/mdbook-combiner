@@ -4,8 +4,8 @@ use std::{
 };
 
 use clap::Parser;
-use mdbook::book::{Summary, SummaryItem};
-use walkdir::WalkDir;
+use mdbook::book::{Link, Summary, SummaryItem};
+use walkdir::{DirEntry, WalkDir};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -13,12 +13,16 @@ struct Args {
     /// Path to the meta directory containing all the summary files
     #[arg(short, long)]
     meta_directory: PathBuf,
+    /// Paths to "just a bunch of markdown"
+    #[arg(short, long)]
+    jabom: Vec<PathBuf>,
 }
 
 fn main() {
-    let config = Args::parse();
-    let paths = WalkDir::new(&config.meta_directory);
-    let summaries: Vec<(String, PathBuf)> = paths
+    let args = Args::parse();
+
+    let paths = WalkDir::new(&args.meta_directory);
+    let mut summaries: Vec<(String, PathBuf)> = paths
         .into_iter()
         .filter(|x| x.as_ref().unwrap().file_name().to_str().unwrap() == "SUMMARY.md")
         .map(|x| {
@@ -28,28 +32,48 @@ fn main() {
             )
         })
         .collect();
+    let mut jabom: Vec<(String, Summary)> = args
+        .jabom
+        .into_iter()
+        .map(|x| generate_summary_for_jabom(x))
+        .collect();
+
     let length = summaries.len();
 
-    let rebased_summaries: Vec<Summary> = summaries
+    let mut rebased_summaries: Vec<(String, Summary)> = summaries
         .iter()
         .map(|x| {
             let absolute_path = &x.1.canonicalize().unwrap();
+            println!("{:?}", x.1);
             let sum = mdbook::book::parse_summary(&x.0).unwrap();
-            rebase_summary(absolute_path, sum)
+            (
+                x.1.file_name().unwrap().to_string_lossy().to_string(),
+                rebase_summary(absolute_path, sum),
+            )
         })
         .collect();
+    rebased_summaries.append(&mut jabom);
 
     let final_summary = rebased_summaries
         .into_iter()
         .fold(Summary::default(), |mut acc, mut x| {
-            acc.prefix_chapters.append(&mut x.prefix_chapters);
-            acc.numbered_chapters.append(&mut x.numbered_chapters);
-            acc.suffix_chapters.append(&mut x.suffix_chapters);
+            let ptitle = SummaryItem::PartTitle(x.0);
+            // let sub_summary = SummaryItem::Link(Link {
+            //     name: x.0,
+            //     location: None,
+            //     number: None,
+            //     nested_items: x.1.numbered_chapters,
+            // });
+            // acc.prefix_chapters.append(&mut x.prefix_chapters);
+            // acc.numbered_chapters.append(&mut x.numbered_chapters);
+            // acc.suffix_chapters.append(&mut x.suffix_chapters);
+            acc.numbered_chapters.push(ptitle);
+            acc.numbered_chapters.append(&mut x.1.numbered_chapters);
             acc
         });
     let final_summary = output_summary(final_summary);
     println!("{final_summary:#?}");
-    std::fs::write("Summary.md", final_summary);
+    std::fs::write("SUMMARY.md", final_summary);
     // println!("{length}");
     // let absolute_path = &summaries[0].1.canonicalize().unwrap();
     // rebase_summary(&absolute_path, sum);
@@ -135,7 +159,7 @@ fn output_summary_item(x: &SummaryItem, depth: u16) -> String {
                 acc
             })
         }
-        SummaryItem::Separator => format!("{}---\n", indent),
+        SummaryItem::Separator => format!(""),
         SummaryItem::PartTitle(ptitle) => format!("{}# {ptitle}\n", indent),
     }
 }
@@ -146,4 +170,42 @@ fn output_summary(x: Summary) -> String {
         output += &output_summary_item(&x, 0);
     }
     output
+}
+
+fn is_markdown(entry: &DirEntry) -> bool {
+    entry
+        .file_name()
+        .to_str()
+        .map(|s| s.ends_with(".md"))
+        .unwrap_or(false)
+}
+
+fn generate_summary_for_jabom(dir: PathBuf) -> (String, Summary) {
+    let name = dir.file_name().unwrap().to_string_lossy().to_string();
+    let mut sum = Summary {
+        title: Some(name.clone()),
+        suffix_chapters: vec![],
+        prefix_chapters: vec![],
+        numbered_chapters: vec![],
+    };
+    for entry in WalkDir::new(dir)
+        .min_depth(1)
+        .into_iter()
+        .filter_entry(is_markdown)
+    {
+        let entry = entry.unwrap();
+        println!("{:?}", entry.path());
+        sum.numbered_chapters.push(SummaryItem::Link(Link {
+            name: entry
+                .path()
+                .file_stem()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+            location: Some(entry.path().to_path_buf().canonicalize().unwrap()),
+            number: None,
+            nested_items: vec![],
+        }));
+    }
+    (name, sum)
 }
