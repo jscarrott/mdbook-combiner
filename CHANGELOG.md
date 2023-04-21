@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.3...v0.1.4) - 2023-04-21
+
+### Other
+- Fix CD run trigger
+
 ## [0.1.3](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.2...v0.1.3) - 2023-04-21
 
 ### Fixed
