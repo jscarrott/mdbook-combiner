@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.7...v0.1.8) - 2023-04-21
+
+### Fixed
+- Another indentation fix, not my day
+
 ## [0.1.7](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.6...v0.1.7) - 2023-04-21
 
 ### Fixed
