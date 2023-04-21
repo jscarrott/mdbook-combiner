@@ -129,7 +129,7 @@ fn output_summary_item(x: &SummaryItem, depth: u16) -> String {
             } else {
                 String::new()
             };
-            let mut s = format!("{}-[{}]({})\n", indent, link.name, loc);
+            let mut s = format!("{}- [{}]({})\n", indent, link.name, loc);
             link.nested_items.iter().fold(s, |mut acc, x| {
                 acc += &output_summary_item(x, depth + 1);
                 acc
