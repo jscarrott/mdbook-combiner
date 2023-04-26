@@ -52,23 +52,24 @@ fn main() {
             )
         })
         .collect();
-    rebased_summaries.append(&mut jabom);
+    jabom.append(&mut rebased_summaries);
 
-    let final_summary = rebased_summaries
+    let final_summary = jabom
         .into_iter()
         .fold(Summary::default(), |mut acc, mut x| {
-            let ptitle = SummaryItem::PartTitle(x.0);
-            // let sub_summary = SummaryItem::Link(Link {
-            //     name: x.0,
-            //     location: None,
-            //     number: None,
-            //     nested_items: x.1.numbered_chapters,
-            // });
+            // let ptitle = SummaryItem::PartTitle(x.0);
+            let sub_summary = SummaryItem::Link(Link {
+                name: x.0,
+                location: None,
+                number: None,
+                nested_items: x.1.numbered_chapters,
+            });
             // acc.prefix_chapters.append(&mut x.prefix_chapters);
             // acc.numbered_chapters.append(&mut x.numbered_chapters);
             // acc.suffix_chapters.append(&mut x.suffix_chapters);
-            acc.numbered_chapters.push(ptitle);
-            acc.numbered_chapters.append(&mut x.1.numbered_chapters);
+            // acc.numbered_chapters.push(ptitle);
+            // acc.numbered_chapters.append(&mut x.1.numbered_chapters);
+            acc.numbered_chapters.push(sub_summary);
             acc
         });
     let final_summary = output_summary(final_summary);
@@ -172,7 +173,7 @@ fn output_summary(x: Summary) -> String {
     output
 }
 
-fn is_markdown(entry: &DirEntry) -> bool {
+fn is_markdown(entry: &std::fs::DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
@@ -188,14 +189,40 @@ fn generate_summary_for_jabom(dir: PathBuf) -> (String, Summary) {
         prefix_chapters: vec![],
         numbered_chapters: vec![],
     };
-    for entry in WalkDir::new(dir)
-        .min_depth(1)
-        .into_iter()
-        .filter_entry(is_markdown)
-    {
+
+    for entry in std::fs::read_dir(dir).unwrap() {
         let entry = entry.unwrap();
-        println!("{:?}", entry.path());
-        sum.numbered_chapters.push(SummaryItem::Link(Link {
+        sum.numbered_chapters.append(&mut generate_item(entry));
+    }
+
+    // for entry in WalkDir::new(dir)
+    //     .min_depth(1)
+    //     .into_iter()
+    //     .filter_entry(is_markdown)
+    // {
+    //     let entry = entry.unwrap();
+    //     println!("{:?}", entry.path());
+    //     sum.numbered_chapters.push(SummaryItem::Link(Link {
+    //         name: entry
+    //             .path()
+    //             .file_stem()
+    //             .unwrap()
+    //             .to_string_lossy()
+    //             .to_string(),
+    //         location: Some(entry.path().to_path_buf().canonicalize().unwrap()),
+    //         number: None,
+    //         nested_items: vec![],
+    //     }));
+    // }
+    (name, sum)
+}
+
+fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
+    let mut items = vec![];
+    let path = entry.path();
+    println!("{:?}", entry.path());
+    if path.is_file() {
+        items.push(SummaryItem::Link(Link {
             name: entry
                 .path()
                 .file_stem()
@@ -206,6 +233,46 @@ fn generate_summary_for_jabom(dir: PathBuf) -> (String, Summary) {
             number: None,
             nested_items: vec![],
         }));
+    } else {
+        // items.push(SummaryItem::PartTitle(
+        //     entry
+        //         .path()
+        //         .file_stem()
+        //         .unwrap()
+        //         .to_string_lossy()
+        //         .to_string(),
+        // ));
+        println!("Going 1 level deeper");
+        for entry in std::fs::read_dir(entry.path()).unwrap() {
+            let entry = entry.unwrap();
+            if entry.path().is_dir() {
+                let item = SummaryItem::Link(Link {
+                    name: entry
+                        .path()
+                        .file_stem()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string(),
+                    location: None,
+                    number: None,
+                    nested_items: generate_item(entry),
+                });
+                items.push(item);
+            } else if is_markdown(&entry) {
+                items.push(SummaryItem::Link(Link {
+                    name: entry
+                        .path()
+                        .file_stem()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string(),
+                    location: Some(entry.path().canonicalize().unwrap()),
+                    number: None,
+                    nested_items: vec![],
+                }));
+            }
+        }
+        // items.append(&mut generate_item(entry));
     }
-    (name, sum)
+    items
 }
