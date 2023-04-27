@@ -16,6 +16,8 @@ struct Args {
     /// Paths to "just a bunch of markdown"
     #[arg(short, long)]
     jabom: Vec<PathBuf>,
+    #[arg(short, long)]
+    inject_titles: bool,
 }
 
 fn main() {
@@ -58,11 +60,14 @@ fn main() {
         .into_iter()
         .fold(Summary::default(), |mut acc, mut x| {
             // let ptitle = SummaryItem::PartTitle(x.0);
+            let mut items = x.1.prefix_chapters;
+            items.append(&mut x.1.numbered_chapters);
+            items.append(&mut x.1.suffix_chapters);
             let sub_summary = SummaryItem::Link(Link {
                 name: x.0,
                 location: None,
                 number: None,
-                nested_items: x.1.numbered_chapters,
+                nested_items: items,
             });
             // acc.prefix_chapters.append(&mut x.prefix_chapters);
             // acc.numbered_chapters.append(&mut x.numbered_chapters);
@@ -72,6 +77,24 @@ fn main() {
             acc.numbered_chapters.push(sub_summary);
             acc
         });
+    if args.inject_titles {
+        for entry in WalkDir::new(args.meta_directory)
+            .min_depth(1)
+            .into_iter()
+            .filter_entry(|e| is_markdown_walk(e))
+        {
+            let entry = entry.unwrap();
+            if !entry.file_type().is_dir() {
+                println!("Injecting! {:?}", entry.path());
+                let mut file = fs::read_to_string(entry.path()).unwrap();
+                file.insert_str(
+                    0,
+                    &format!("{}\n", entry.path().file_stem().unwrap().to_string_lossy()),
+                );
+                fs::write(entry.path(), file);
+            }
+        }
+    }
     let final_summary = output_summary(final_summary);
     println!("{final_summary:#?}");
     std::fs::write("SUMMARY.md", final_summary);
@@ -154,7 +177,7 @@ fn output_summary_item(x: &SummaryItem, depth: u16) -> String {
             } else {
                 String::new()
             };
-            let mut s = format!("{}- [{}]({})\n", indent, link.name, loc);
+            let mut s = format!("{}- [{}](<{}>)\n", indent, link.name, loc);
             link.nested_items.iter().fold(s, |mut acc, x| {
                 acc += &output_summary_item(x, depth + 1);
                 acc
@@ -174,6 +197,17 @@ fn output_summary(x: Summary) -> String {
 }
 
 fn is_markdown(entry: &std::fs::DirEntry) -> bool {
+    entry
+        .file_name()
+        .to_str()
+        .map(|s| s.ends_with(".md"))
+        .unwrap_or(false)
+}
+
+fn is_markdown_walk(entry: &DirEntry) -> bool {
+    if entry.file_type().is_dir() {
+        return true;
+    }
     entry
         .file_name()
         .to_str()
