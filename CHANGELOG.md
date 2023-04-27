@@ -6,6 +6,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.9...v0.1.10) - 2023-04-27
+
+### Added
+- Inject titles into each page
+- *(jabom)* Retain the jabom dir structure
+- Added just a bunch of markdown option for ingesting folders of markdown files
+- Added ability to output the generated summary to a file
+- Added logic to allow combining of mdbook, serialization still not done
+- Added the basic merging capacity, allowing SUMMARY to be rebased
+
+### Fixed
+- Another indentation fix, not my day
+- Fixed indentation
+- *(Serializing)* Fix issue with the format of numbered items
+- Included nested items in the rebase
+
+### Other
+- release
+- release
+- release
+- Another trigger fix
+- release
+- Fix trigger again
+- release
+- Fix CD run trigger
+- release
+- Added Binary upload to release
+- release
+- Updated release plz
+- Added rust caching
+- release
+- Added a readme
+- Added plz release to automate release
+
 ## [0.1.8](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.7...v0.1.8) - 2023-04-21
 
 ### Fixed
