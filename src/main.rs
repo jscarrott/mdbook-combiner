@@ -24,7 +24,7 @@ fn main() {
     let args = Args::parse();
 
     let paths = WalkDir::new(&args.meta_directory);
-    let mut summaries: Vec<(String, PathBuf)> = paths
+    let summaries: Vec<(String, PathBuf)> = paths
         .into_iter()
         .filter(|x| x.as_ref().unwrap().file_name().to_str().unwrap() == "SUMMARY.md")
         .map(|x| {
@@ -37,10 +37,10 @@ fn main() {
     let mut jabom: Vec<(String, Summary)> = args
         .jabom
         .into_iter()
-        .map(|x| generate_summary_for_jabom(x))
+        .map(generate_summary_for_jabom)
         .collect();
 
-    let length = summaries.len();
+    let _length = summaries.len();
 
     let mut rebased_summaries: Vec<(String, Summary)> = summaries
         .iter()
@@ -81,7 +81,7 @@ fn main() {
         for entry in WalkDir::new(args.meta_directory)
             .min_depth(1)
             .into_iter()
-            .filter_entry(|e| is_markdown_walk(e))
+            .filter_entry(is_markdown_walk)
         {
             let entry = entry.unwrap();
             if !entry.file_type().is_dir() {
@@ -177,13 +177,13 @@ fn output_summary_item(x: &SummaryItem, depth: u16) -> String {
             } else {
                 String::new()
             };
-            let mut s = format!("{}- [{}](<{}>)\n", indent, link.name, loc);
+            let s = format!("{}- [{}](<{}>)\n", indent, link.name, loc);
             link.nested_items.iter().fold(s, |mut acc, x| {
                 acc += &output_summary_item(x, depth + 1);
                 acc
             })
         }
-        SummaryItem::Separator => format!(""),
+        SummaryItem::Separator => String::new(),
         SummaryItem::PartTitle(ptitle) => format!("{}# {ptitle}\n", indent),
     }
 }
@@ -263,7 +263,7 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
                 .unwrap()
                 .to_string_lossy()
                 .to_string(),
-            location: Some(entry.path().to_path_buf().canonicalize().unwrap()),
+            location: Some(entry.path().canonicalize().unwrap()),
             number: None,
             nested_items: vec![],
         }));
