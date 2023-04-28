@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.12](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.11...v0.1.12) - 2023-04-28
+
+### Other
+- Set correct token for auto release
+- Set correct token for auto release
+
 ## [0.1.11](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.10...v0.1.11) - 2023-04-28
 
 ### Fixed
