@@ -9,5 +9,5 @@ description = "a utility to combine mdbook summaries from multiple source into o
 
 [dependencies]
 clap = { version = "4.2.4", features = ["derive"] }
-mdbook = "0.4.28"
+mdbook = { version = "0.4.28", default-features = false}
 walkdir = "2.3.3"
