@@ -91,13 +91,13 @@ fn main() {
                     0,
                     &format!("{}\n", entry.path().file_stem().unwrap().to_string_lossy()),
                 );
-                fs::write(entry.path(), file);
+                let _ = fs::write(entry.path(), file);
             }
         }
     }
     let final_summary = output_summary(final_summary);
     println!("{final_summary:#?}");
-    std::fs::write("SUMMARY.md", final_summary);
+    let _ = std::fs::write("SUMMARY.md", final_summary);
     // println!("{length}");
     // let absolute_path = &summaries[0].1.canonicalize().unwrap();
     // rebase_summary(&absolute_path, sum);
