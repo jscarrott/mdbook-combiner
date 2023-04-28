@@ -277,6 +277,17 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
         //         .to_string(),
         // ));
         println!("Going 1 level deeper");
+        let mut new_item = Link {
+            name: entry
+                .path()
+                .file_stem()
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+            location: None,
+            number: None,
+            nested_items: vec![],
+        };
         for entry in std::fs::read_dir(entry.path()).unwrap() {
             let entry = entry.unwrap();
             if entry.path().is_dir() {
@@ -291,9 +302,9 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
                     number: None,
                     nested_items: generate_item(entry),
                 });
-                items.push(item);
+                new_item.nested_items.push(item);
             } else if is_markdown(&entry) {
-                items.push(SummaryItem::Link(Link {
+                new_item.nested_items.push(SummaryItem::Link(Link {
                     name: entry
                         .path()
                         .file_stem()
@@ -306,6 +317,7 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
                 }));
             }
         }
+        items.push(SummaryItem::Link(new_item));
         // items.append(&mut generate_item(entry));
     }
     items
