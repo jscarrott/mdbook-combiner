@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.14](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.13...v0.1.14) - 2023-05-03
+
+### Fixed
+- Fixed duplicate folder creation
+
 ## [0.1.13](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.12...v0.1.13) - 2023-04-28
 
 ### Fixed
