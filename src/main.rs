@@ -291,18 +291,18 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
         for entry in std::fs::read_dir(entry.path()).unwrap() {
             let entry = entry.unwrap();
             if entry.path().is_dir() {
-                let item = SummaryItem::Link(Link {
-                    name: entry
-                        .path()
-                        .file_stem()
-                        .unwrap()
-                        .to_string_lossy()
-                        .to_string(),
-                    location: None,
-                    number: None,
-                    nested_items: generate_item(entry),
-                });
-                new_item.nested_items.push(item);
+                // let item = SummaryItem::Link(Link {
+                //     name: entry
+                //         .path()
+                //         .file_stem()
+                //         .unwrap()
+                //         .to_string_lossy()
+                //         .to_string(),
+                //     location: None,
+                //     number: None,
+                //     nested_items: generate_item(entry),
+                // });
+                new_item.nested_items.append(&mut generate_item(entry));
             } else if is_markdown(&entry) {
                 new_item.nested_items.push(SummaryItem::Link(Link {
                     name: entry
