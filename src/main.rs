@@ -10,12 +10,29 @@ use walkdir::{DirEntry, WalkDir};
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Path to the meta directory containing all the summary files
+    /// Path to the meta directory containing all the `SUMMARY.md` files
+    ///
+    /// The meta_directory will be walked depth first, with directories yielded before their contents.
+    /// The ordering of contents (the sub-directories w/ a `SUMMARY.md`) within a directory is unspecified.
     #[arg(short, long)]
     meta_directory: PathBuf,
-    /// Paths to "just a bunch of markdown"
+    /// Paths to directories of "just a bunch of markdown"
+    ///
+    /// This argument can be set multiple times.
+    /// This will autogenerate a summary for all the markdown files, in the order they are specified.
+    ///
+    /// # Example
+    ///
+    /// `--jabom ./welcome --jabom ./benefits --jabom ./tools`
     #[arg(short, long)]
     jabom: Vec<PathBuf>,
+    /// Option to inject filenames into the page to improve search indexing
+    ///
+    /// It is common when working with markdown exported from a wiki to have useful information
+    /// embedded in the title of each page. The titles of each page do not get indexed by the
+    /// mdBook search, which is fine when working with hand-crafted markdown, but not a great
+    /// experience when dealing with a wiki import. This option can be used to improve search
+    /// by copying the title into the body.
     #[arg(short, long)]
     inject_titles: bool,
 }
