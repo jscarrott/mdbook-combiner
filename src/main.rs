@@ -76,7 +76,6 @@ fn main() {
     let final_summary = jabom
         .into_iter()
         .fold(Summary::default(), |mut acc, mut x| {
-            // let ptitle = SummaryItem::PartTitle(x.0);
             let mut items = x.1.prefix_chapters;
             items.append(&mut x.1.numbered_chapters);
             items.append(&mut x.1.suffix_chapters);
@@ -86,11 +85,6 @@ fn main() {
                 number: None,
                 nested_items: items,
             });
-            // acc.prefix_chapters.append(&mut x.prefix_chapters);
-            // acc.numbered_chapters.append(&mut x.numbered_chapters);
-            // acc.suffix_chapters.append(&mut x.suffix_chapters);
-            // acc.numbered_chapters.push(ptitle);
-            // acc.numbered_chapters.append(&mut x.1.numbered_chapters);
             acc.numbered_chapters.push(sub_summary);
             acc
         });
@@ -115,9 +109,6 @@ fn main() {
     let final_summary = output_summary(final_summary);
     println!("{final_summary:#?}");
     let _ = std::fs::write("SUMMARY.md", final_summary);
-    // println!("{length}");
-    // let absolute_path = &summaries[0].1.canonicalize().unwrap();
-    // rebase_summary(&absolute_path, sum);
 }
 
 fn rebase_summary(new_base: &Path, summary: Summary) -> Summary {
@@ -147,27 +138,10 @@ fn rebase_summary(new_base: &Path, summary: Summary) -> Summary {
     // todo!()
 }
 
-// fn rebase(mut sum_item: SummaryItem, new_base: &Path) -> SummaryItem {
-//     match sum_item {
-//         mdbook::book::SummaryItem::Link(link) => {
-//             let mut new_path = PathBuf::new();
-//             new_path.push(new_base);
-//             new_path.push(link.location.clone().unwrap());
-//             link.location = Some(new_path);
-//         }
-//         mdbook::book::SummaryItem::Separator => (),
-//         mdbook::book::SummaryItem::PartTitle(ptitle) => (),
-//     };
-//     sum_item
-// }
-
 fn rebase(x: mdbook::book::SummaryItem, new_base: &Path) -> mdbook::book::SummaryItem {
     match x {
         mdbook::book::SummaryItem::Link(mut link) => {
-            let mut new_path = PathBuf::new();
-            new_path.push(new_base);
-            new_path.push(link.location.unwrap());
-            link.location = Some(new_path);
+            set_link_location(new_base, &link.location);
             link.nested_items = link
                 .nested_items
                 .into_iter()
@@ -179,6 +153,18 @@ fn rebase(x: mdbook::book::SummaryItem, new_base: &Path) -> mdbook::book::Summar
         mdbook::book::SummaryItem::PartTitle(ptitle) => {
             mdbook::book::SummaryItem::PartTitle(ptitle)
         }
+    }
+}
+
+fn set_link_location(new_base: &Path, file_path: &Option<PathBuf>) -> Option<PathBuf> {
+    match file_path {
+        Some(old_path) => {
+            let mut new_path = PathBuf::new();
+            new_path.push(new_base);
+            new_path.push(old_path);
+            Some(new_path)
+        }
+        None => None,
     }
 }
 
@@ -246,25 +232,6 @@ fn generate_summary_for_jabom(dir: PathBuf) -> (String, Summary) {
         sum.numbered_chapters.append(&mut generate_item(entry));
     }
 
-    // for entry in WalkDir::new(dir)
-    //     .min_depth(1)
-    //     .into_iter()
-    //     .filter_entry(is_markdown)
-    // {
-    //     let entry = entry.unwrap();
-    //     println!("{:?}", entry.path());
-    //     sum.numbered_chapters.push(SummaryItem::Link(Link {
-    //         name: entry
-    //             .path()
-    //             .file_stem()
-    //             .unwrap()
-    //             .to_string_lossy()
-    //             .to_string(),
-    //         location: Some(entry.path().to_path_buf().canonicalize().unwrap()),
-    //         number: None,
-    //         nested_items: vec![],
-    //     }));
-    // }
     (name, sum)
 }
 
@@ -285,14 +252,6 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
             nested_items: vec![],
         }));
     } else {
-        // items.push(SummaryItem::PartTitle(
-        //     entry
-        //         .path()
-        //         .file_stem()
-        //         .unwrap()
-        //         .to_string_lossy()
-        //         .to_string(),
-        // ));
         println!("Going 1 level deeper");
         let mut new_item = Link {
             name: entry
@@ -308,17 +267,6 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
         for entry in std::fs::read_dir(entry.path()).unwrap() {
             let entry = entry.unwrap();
             if entry.path().is_dir() {
-                // let item = SummaryItem::Link(Link {
-                //     name: entry
-                //         .path()
-                //         .file_stem()
-                //         .unwrap()
-                //         .to_string_lossy()
-                //         .to_string(),
-                //     location: None,
-                //     number: None,
-                //     nested_items: generate_item(entry),
-                // });
                 new_item.nested_items.append(&mut generate_item(entry));
             } else if is_markdown(&entry) {
                 new_item.nested_items.push(SummaryItem::Link(Link {
@@ -335,7 +283,6 @@ fn generate_item(entry: fs::DirEntry) -> Vec<SummaryItem> {
             }
         }
         items.push(SummaryItem::Link(new_item));
-        // items.append(&mut generate_item(entry));
     }
     items
 }
