@@ -1,0 +1,2 @@
+- [foo](<>)
+	- [Introduction](</home/johns/git-personal/mdbook-combiner/test/foo/README.md>)

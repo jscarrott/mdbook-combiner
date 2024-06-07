@@ -19,8 +19,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["-m", "./src/src", "-j", "./src/src/wiki"],
-            "cwd": "/home/john/git/razorsecure-docs-repo"
+            "args": ["-m", "test"]
         },
         {
             "type": "lldb",

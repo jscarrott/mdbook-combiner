@@ -141,7 +141,7 @@ fn rebase_summary(new_base: &Path, summary: Summary) -> Summary {
 fn rebase(x: mdbook::book::SummaryItem, new_base: &Path) -> mdbook::book::SummaryItem {
     match x {
         mdbook::book::SummaryItem::Link(mut link) => {
-            set_link_location(new_base, &link.location);
+            link.location = set_link_location(new_base, &link.location);
             link.nested_items = link
                 .nested_items
                 .into_iter()
