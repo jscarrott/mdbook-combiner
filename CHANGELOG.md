@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.17](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.16...v0.1.17) - 2024-06-07
+
+### Fixed
+- Correctly set link location
+
 ## [0.1.16](https://github.com/jscarrott/mdbook-combiner/compare/v0.1.15...v0.1.16) - 2024-05-24
 
 ### Added
